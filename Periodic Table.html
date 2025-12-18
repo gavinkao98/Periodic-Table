@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>元素週期表記憶特訓</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; 
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+            color: #333;
+            padding: 40px 0;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        /* 卡片樣式 */
+        .card-container {
+            perspective: 1000px;
+            width: 100%;
+            height: 300px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-radius: 15px;
+        }
+
+        .card.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 15px;
+            background-color: white;
+            border: 2px solid #e0e0e0;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+            background-color: #e8f4fd;
+            border-color: #2196F3;
+        }
+
+        .element-main {
+            font-size: 4rem;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .element-sub {
+            font-size: 1.2rem;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        /* 按鈕樣式 */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.1s;
+            font-weight: bold;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-start { background-color: #2196F3; color: white; width: 100%; }
+        .btn-wrong { background-color: #ff5252; color: white; flex: 1; }
+        .btn-correct { background-color: #4caf50; color: white; flex: 1; }
+        .btn-restart { background-color: #607d8b; color: white; margin-top: 20px;}
+
+        /* 進度條 */
+        .progress {
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* 結果頁面 */
+        .results-area {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .wrong-list {
+            text-align: left;
+            margin-top: 25px;
+            border-top: 1px solid #eee;
+        }
+
+        .wrong-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 1.1rem;
+        }
+
+        .symbol-fixed {
+            display: inline-block;
+            width: 60px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="start-screen">
+        <h1>元素週期表記憶測驗</h1>
+        <p>點擊下方按鈕開始隨機測驗</p>
+        <button class="btn btn-start" onclick="startQuiz()">開始測驗</button>
+    </div>
+
+    <div id="quiz-screen" class="hidden">
+        <div class="progress">
+            進度: <span id="current-count">1</span> / <span id="total-count">0</span>
+        </div>
+
+        <div class="card-container" onclick="flipCard()">
+            <div class="card" id="flashcard">
+                <div class="card-face card-front">
+                    <p class="element-sub">請問這是什麼元素？</p>
+                    <h2 class="element-main" id="question-text">?</h2>
+                </div>
+                <div class="card-face card-back">
+                    <p class="element-sub">答案是</p>
+                    <h2 class="element-main" id="answer-text">?</h2>
+                </div>
+            </div>
+        </div>
+
+        <p style="color: #ff0000; font-size: 1.5rem; font-weight: bold; margin-top: 15px;">
+            (點擊卡片翻看答案)
+        </p>
+
+        <div id="action-buttons" class="btn-group hidden">
+            <button class="btn btn-wrong" onclick="recordResult(false)">😫 答錯/忘記</button>
+            <button class="btn btn-correct" onclick="recordResult(true)">😎 答對/記得</button>
+        </div>
+    </div>
+
+    <div id="result-screen" class="hidden">
+        <div class="results-area">
+            <h2>測驗結束！</h2>
+            <div style="font-size: 3rem; font-weight: bold; color: #2196F3;">
+                <span id="score-percent">0</span>%
+            </div>
+            <p>正確率</p>
+            
+            <div id="wrong-section" class="hidden">
+                <h3 style="margin-top: 30px;">需要加強的元素：</h3>
+                <div class="wrong-list" id="wrong-list-container"></div>
+            </div>
+            
+            <button class="btn btn-restart" onclick="startQuiz()">重新測驗</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 根據您提供的順序更新的元素列表 (共50個)
+    const fullElementList = [
+        { symbol: "H", name: "氫" }, { symbol: "He", name: "氦" },
+        { symbol: "Li", name: "鋰" }, { symbol: "Be", name: "鈹" },
+        { symbol: "B", name: "硼" }, { symbol: "C", name: "碳" },
+        { symbol: "N", name: "氮" }, { symbol: "O", name: "氧" },
+        { symbol: "F", name: "氟" }, { symbol: "Ne", name: "氖" },
+        { symbol: "Na", name: "鈉" }, { symbol: "Mg", name: "鎂" },
+        { symbol: "Al", name: "鋁" }, { symbol: "Si", name: "矽" },
+        { symbol: "P", name: "磷" }, { symbol: "S", name: "硫" },
+        { symbol: "Cl", name: "氯" }, { symbol: "Ar", name: "氬" },
+        { symbol: "K", name: "鉀" }, { symbol: "Ca", name: "鈣" },
+        { symbol: "Sc", name: "鈧" }, { symbol: "Ti", name: "鈦" },
+        { symbol: "V", name: "釩" }, { symbol: "Cr", name: "鉻" },
+        { symbol: "Mn", name: "錳" }, { symbol: "Fe", name: "鐵" },
+        { symbol: "Co", name: "鈷" }, { symbol: "Ni", name: "鎳" },
+        { symbol: "Cu", name: "銅" }, { symbol: "Zn", name: "鋅" },
+        { symbol: "Br", name: "溴" }, { symbol: "Kr", name: "氪" },
+        { symbol: "Rb", name: "銣" }, { symbol: "Sr", name: "鍶" },
+        { symbol: "Ag", name: "銀" }, { symbol: "Cd", name: "鎘" },
+        { symbol: "Sn", name: "錫" },
+        { symbol: "I", name: "碘" }, { symbol: "Xe", name: "氙" },
+        { symbol: "Cs", name: "銫" }, { symbol: "Ba", name: "鋇" },
+        { symbol: "W", name: "鎢" },
+        { symbol: "Pt", name: "鉑" }, { symbol: "Au", name: "金" },
+        { symbol: "Hg", name: "汞" }, { symbol: "Pb", name: "鉛" },
+        { symbol: "At", name: "砈" }, // 修正您提供的 "石厄"
+        { symbol: "Rn", name: "氡" },
+        { symbol: "Fr", name: "鍅" }, // 修正您提供的 "金法"
+        { symbol: "Ra", name: "鐳" }
+    ];
+
+    let quizQueue = [];
+    let currentIndex = 0;
+    let results = [];
+    let isCardFlipped = false;
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    function startQuiz() {
+        quizQueue = [...fullElementList]; 
+        shuffleArray(quizQueue);
+        currentIndex = 0;
+        results = [];
+        
+        quizQueue = quizQueue.map(item => {
+            const isSymbolQuestion = Math.random() > 0.5;
+            return {
+                ...item,
+                question: isSymbolQuestion ? item.symbol : item.name,
+                answer: isSymbolQuestion ? item.name : item.symbol,
+                type: isSymbolQuestion ? '符號' : '中文'
+            };
+        });
+
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        document.getElementById('total-count').innerText = quizQueue.length;
+        
+        loadCard();
+    }
+
+    function loadCard() {
+        const currentItem = quizQueue[currentIndex];
+        const card = document.getElementById('flashcard');
+        
+        card.classList.remove('is-flipped');
+        isCardFlipped = false;
+        document.getElementById('action-buttons').classList.add('hidden');
+
+        document.getElementById('current-count').innerText = currentIndex + 1;
+        document.getElementById('question-text').innerText = currentItem.question;
+        
+        setTimeout(() => {
+            document.getElementById('answer-text').innerText = currentItem.answer;
+        }, 200);
+    }
+
+    function flipCard() {
+        if (isCardFlipped) return;
+        
+        const card = document.getElementById('flashcard');
+        card.classList.add('is-flipped');
+        isCardFlipped = true;
+        
+        setTimeout(() => {
+            document.getElementById('action-buttons').classList.remove('hidden');
+        }, 300);
+    }
+
+    function recordResult(isCorrect) {
+        const currentItem = quizQueue[currentIndex];
+        results.push({
+            ...currentItem,
+            isCorrect: isCorrect
+        });
+
+        currentIndex++;
+
+        if (currentIndex < quizQueue.length) {
+            loadCard();
+        } else {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+
+        const correctCount = results.filter(r => r.isCorrect).length;
+        const total = results.length;
+        const percentage = Math.round((correctCount / total) * 100);
+        
+        document.getElementById('score-percent').innerText = percentage;
+
+        const wrongListContainer = document.getElementById('wrong-list-container');
+        const wrongSection = document.getElementById('wrong-section');
+        wrongListContainer.innerHTML = ''; 
+
+        const wrongItems = results.filter(r => !r.isCorrect);
+
+        if (wrongItems.length > 0) {
+            wrongSection.classList.remove('hidden');
+            wrongItems.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'wrong-item';
+                div.innerHTML = `
+                    <span class="symbol-fixed">${item.symbol}</span>
+                    <span>${item.name}</span>
+                `;
+                wrongListContainer.appendChild(div);
+            });
+        } else {
+            wrongSection.classList.add('hidden');
+            wrongListContainer.innerHTML = '<p style="text-align:center; color:#4caf50;">太強了！全對！</p>';
+            wrongSection.classList.remove('hidden');
+        }
+    }
+</script>
+
+</body>
+</html>
