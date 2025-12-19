@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>元素週期表記憶特訓</title>
+    <title>化學記憶字卡測驗</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -21,6 +21,40 @@
             width: 90%;
             max-width: 500px;
             text-align: center;
+            padding-bottom: 50px;
+        }
+
+        h1 { margin-bottom: 30px; color: #2c3e50; }
+
+        /* 頂部導航列 (新功能：固定退出按鈕與進度條) */
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 0 5px;
+        }
+
+        .progress-text {
+            font-size: 1rem;
+            color: #555;
+            font-weight: bold;
+        }
+
+        .btn-quit-top {
+            background-color: transparent;
+            border: 1px solid #ff5252;
+            color: #ff5252;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-quit-top:hover {
+            background-color: #ff5252;
+            color: white;
         }
 
         /* 卡片樣式 */
@@ -58,6 +92,8 @@
             border-radius: 15px;
             background-color: white;
             border: 2px solid #e0e0e0;
+            padding: 10px;
+            box-sizing: border-box;
         }
 
         .card-back {
@@ -67,15 +103,20 @@
         }
 
         .element-main {
-            font-size: 4rem;
+            font-size: 3.5rem;
             font-weight: bold;
             margin: 0;
+            line-height: 1.2;
+        }
+
+        .chem-font {
+            font-family: 'Times New Roman', serif;
         }
 
         .element-sub {
             font-size: 1.2rem;
             color: #666;
-            margin-top: 10px;
+            margin-bottom: 15px;
         }
 
         /* 按鈕樣式 */
@@ -84,34 +125,44 @@
             gap: 10px;
             justify-content: center;
             margin-top: 20px;
+            /* 關鍵修正：給定固定高度，防止排版跳動 */
+            height: 60px; 
+            align-items: flex-start; /* 讓按鈕靠上對齊 */
         }
 
         .btn {
-            padding: 12px 24px;
+            padding: 15px 24px;
             border: none;
             border-radius: 8px;
-            font-size: 1rem;
+            font-size: 1.1rem;
             cursor: pointer;
-            transition: transform 0.1s;
+            transition: transform 0.1s, background-color 0.2s;
             font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        .btn:active {
-            transform: scale(0.95);
+        .btn:active { transform: scale(0.95); }
+
+        .menu-btns {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .btn-menu {
+            width: 100%;
+            background-color: white;
+            border: 2px solid #2196F3;
+            color: #2196F3;
+        }
+        .btn-menu:hover {
+            background-color: #2196F3;
+            color: white;
         }
 
-        .btn-start { background-color: #2196F3; color: white; width: 100%; }
         .btn-wrong { background-color: #ff5252; color: white; flex: 1; }
         .btn-correct { background-color: #4caf50; color: white; flex: 1; }
-        .btn-restart { background-color: #607d8b; color: white; margin-top: 20px;}
-
-        /* 進度條 */
-        .progress {
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-            color: #666;
-        }
-
+        .btn-home { background-color: #607d8b; color: white; margin-top: 20px; width: 100%;}
+        
         /* 結果頁面 */
         .results-area {
             background: white;
@@ -124,6 +175,8 @@
             text-align: left;
             margin-top: 25px;
             border-top: 1px solid #eee;
+            height: auto; 
+            overflow: visible;
         }
 
         .wrong-item {
@@ -131,53 +184,72 @@
             align-items: center;
             padding: 12px 15px;
             border-bottom: 1px solid #f0f0f0;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
         }
 
         .symbol-fixed {
             display: inline-block;
-            width: 60px;
+            width: 100px;
             font-weight: bold;
             color: #333;
+            font-family: 'Times New Roman', serif;
         }
 
-        .hidden { display: none; }
+        /* 工具類別 */
+        .hidden { display: none !important; }
+
+        /* 新增：佔位但隱藏 (防止排版跳動) */
+        .invisible { 
+            visibility: hidden; 
+            opacity: 0;
+            pointer-events: none; /* 防止隱藏時誤觸 */
+        }
+        
+        sup { font-size: 0.6em; }
+        sub { font-size: 0.6em; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div id="start-screen">
-        <h1>元素週期表記憶測驗</h1>
-        <p>點擊下方按鈕開始隨機測驗</p>
-        <button class="btn btn-start" onclick="startQuiz()">開始測驗</button>
+        <h1>化學記憶特訓</h1>
+        <p style="margin-bottom: 20px; color: #666;">請選擇要測驗的項目：</p>
+        <div class="menu-btns">
+            <button class="btn btn-menu" onclick="startQuiz('element')">🧪 元素週期表</button>
+            <button class="btn btn-menu" onclick="startQuiz('valence')">⚡ 離子價數表</button>
+        </div>
     </div>
 
     <div id="quiz-screen" class="hidden">
-        <div class="progress">
-            進度: <span id="current-count">1</span> / <span id="total-count">0</span>
+        <div class="quiz-header">
+            <div class="progress-text">
+                <span id="quiz-title"></span> 
+                (<span id="current-count">1</span>/<span id="total-count">0</span>)
+            </div>
+            <button class="btn-quit-top" onclick="goHome()">退出</button>
         </div>
 
         <div class="card-container" onclick="flipCard()">
             <div class="card" id="flashcard">
                 <div class="card-face card-front">
-                    <p class="element-sub">請問這是什麼元素？</p>
-                    <h2 class="element-main" id="question-text">?</h2>
+                    <p class="element-sub">請問這是什麼？</p>
+                    <div class="element-main" id="question-text">?</div>
                 </div>
                 <div class="card-face card-back">
                     <p class="element-sub">答案是</p>
-                    <h2 class="element-main" id="answer-text">?</h2>
+                    <div class="element-main chem-font" id="answer-text">?</div>
                 </div>
             </div>
         </div>
 
-        <p style="color: #ff0000; font-size: 1.5rem; font-weight: bold; margin-top: 15px;">
-            (點擊卡片翻看答案)
+        <p style="color: #ff0000; font-size: 1.2rem; font-weight: bold; margin-top: 15px; height: 1.5rem;">
+            <span id="hint-text">(點擊卡片翻看答案)</span>
         </p>
 
-        <div id="action-buttons" class="btn-group hidden">
-            <button class="btn btn-wrong" onclick="recordResult(false)">😫 答錯/忘記</button>
-            <button class="btn btn-correct" onclick="recordResult(true)">😎 答對/記得</button>
+        <div id="action-buttons" class="btn-group invisible">
+            <button class="btn btn-wrong" onclick="recordResult(false)">😫 忘記了</button>
+            <button class="btn btn-correct" onclick="recordResult(true)">😎 記得很熟</button>
         </div>
     </div>
 
@@ -190,17 +262,17 @@
             <p>正確率</p>
             
             <div id="wrong-section" class="hidden">
-                <h3 style="margin-top: 30px;">需要加強的元素：</h3>
+                <h3 style="margin-top: 30px;">需要加強的項目：</h3>
                 <div class="wrong-list" id="wrong-list-container"></div>
             </div>
             
-            <button class="btn btn-restart" onclick="startQuiz()">重新測驗</button>
+            <button class="btn btn-home" onclick="goHome()">回首頁選單</button>
         </div>
     </div>
 </div>
 
 <script>
-    // 根據您提供的順序更新的元素列表 (共50個)
+    // --- 資料區 ---
     const fullElementList = [
         { symbol: "H", name: "氫" }, { symbol: "He", name: "氦" },
         { symbol: "Li", name: "鋰" }, { symbol: "Be", name: "鈹" },
@@ -226,16 +298,78 @@
         { symbol: "W", name: "鎢" },
         { symbol: "Pt", name: "鉑" }, { symbol: "Au", name: "金" },
         { symbol: "Hg", name: "汞" }, { symbol: "Pb", name: "鉛" },
-        { symbol: "At", name: "砈" }, // 修正您提供的 "石厄"
+        { symbol: "At", name: "砈" }, 
         { symbol: "Rn", name: "氡" },
-        { symbol: "Fr", name: "鍅" }, // 修正您提供的 "金法"
+        { symbol: "Fr", name: "鍅" }, 
         { symbol: "Ra", name: "鐳" }
     ];
 
+    const valenceList = [
+        { name: "氫", symbol: "H<sup>+</sup>" },
+        { name: "鎂", symbol: "Mg<sup>2+</sup>" },
+        { name: "硼", symbol: "B<sup>3+</sup>" },
+        { name: "碳", symbol: "C<sup>4+</sup>" },
+        { name: "鋰", symbol: "Li<sup>+</sup>" },
+        { name: "鈣", symbol: "Ca<sup>2+</sup>" },
+        { name: "鋁", symbol: "Al<sup>3+</sup>" },
+        { name: "矽", symbol: "Si<sup>4+</sup>" },
+        { name: "鈉", symbol: "Na<sup>+</sup>" },
+        { name: "鋇", symbol: "Ba<sup>2+</sup>" },
+        { name: "金", symbol: "Au<sup>3+</sup>" },
+        { name: "錳", symbol: "Mn<sup>2+</sup>" },
+        { name: "鉀", symbol: "K<sup>+</sup>" },
+        { name: "銅", symbol: "Cu<sup>2+</sup>" },
+        { name: "鉻", symbol: "Cr<sup>3+</sup>" },
+        { name: "錫", symbol: "Sn<sup>4+</sup>" },
+        { name: "銀", symbol: "Ag<sup>+</sup>" },
+        { name: "鉛", symbol: "Pb<sup>2+</sup>" },
+        { name: "鐵", symbol: "Fe<sup>3+</sup>" },
+        { name: "亞銅", symbol: "Cu<sup>+</sup>" },
+        { name: "鋅", symbol: "Zn<sup>2+</sup>" },
+        { name: "鈷", symbol: "Co<sup>3+</sup>" },
+        { name: "亞汞", symbol: "Hg<sub>2</sub><sup>2+</sup>" },
+        { name: "汞", symbol: "Hg<sup>2+</sup>" },
+        { name: "鎳", symbol: "Ni<sup>3+</sup>" },
+        { name: "亞鐵", symbol: "Fe<sup>2+</sup>" },
+        { name: "亞鈷", symbol: "Co<sup>2+</sup>" },
+        { name: "亞鎳", symbol: "Ni<sup>2+</sup>" },
+        { name: "銨根", symbol: "NH<sub>4</sub><sup>+</sup>" },
+        { name: "氟", symbol: "F<sup>-</sup>" },
+        { name: "溴", symbol: "Br<sup>-</sup>" },
+        { name: "氧", symbol: "O<sup>2-</sup>" },
+        { name: "氮", symbol: "N<sup>3-</sup>" },
+        { name: "氯", symbol: "Cl<sup>-</sup>" },
+        { name: "碘", symbol: "I<sup>-</sup>" },
+        { name: "硫", symbol: "S<sup>2-</sup>" },
+        { name: "磷", symbol: "P<sup>3-</sup>" },
+        { name: "氫氧根", symbol: "OH<sup>-</sup>" },
+        { name: "硫酸根", symbol: "SO<sub>4</sub><sup>2-</sup>" },
+        { name: "硼酸根", symbol: "BO<sub>3</sub><sup>3-</sup>" },
+        { name: "硝酸根", symbol: "NO<sub>3</sub><sup>-</sup>" },
+        { name: "亞硫酸根", symbol: "SO<sub>3</sub><sup>2-</sup>" },
+        { name: "磷酸根", symbol: "PO<sub>4</sub><sup>3-</sup>" },
+        { name: "硫酸氫根", symbol: "HSO<sub>4</sub><sup>-</sup>" },
+        { name: "硫代硫酸根", symbol: "S<sub>2</sub>O<sub>3</sub><sup>2-</sup>" },
+        { name: "碳酸氫根", symbol: "HCO<sub>3</sub><sup>-</sup>" },
+        { name: "碳酸根", symbol: "CO<sub>3</sub><sup>2-</sup>" },
+        { name: "醋酸根", symbol: "CH<sub>3</sub>COO<sup>-</sup>" },
+        { name: "草酸根", symbol: "C<sub>2</sub>O<sub>4</sub><sup>2-</sup>" },
+        { name: "次氯酸根", symbol: "ClO<sup>-</sup>" },
+        { name: "鉻酸根", symbol: "CrO<sub>4</sub><sup>2-</sup>" },
+        { name: "氯酸根", symbol: "ClO<sub>3</sub><sup>-</sup>" },
+        { name: "重鉻酸根", symbol: "Cr<sub>2</sub>O<sub>7</sub><sup>2-</sup>" },
+        { name: "過錳酸根", symbol: "MnO<sub>4</sub><sup>-</sup>" },
+        { name: "錳酸根", symbol: "MnO<sub>4</sub><sup>2-</sup>" }
+    ];
+
+    // --- 變數區 ---
+    let currentQuizType = ''; 
     let quizQueue = [];
     let currentIndex = 0;
     let results = [];
     let isCardFlipped = false;
+
+    // --- 功能區 ---
 
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
@@ -244,28 +378,50 @@
         }
     }
 
-    function startQuiz() {
-        quizQueue = [...fullElementList]; 
+    function startQuiz(type) {
+        currentQuizType = type;
+        let sourceList = [];
+        let titleText = "";
+
+        if (type === 'element') {
+            sourceList = [...fullElementList];
+            titleText = "週期表";
+        } else {
+            sourceList = [...valenceList];
+            titleText = "價數表";
+        }
+
+        document.getElementById('quiz-title').innerText = titleText;
+        
+        quizQueue = [...sourceList]; 
         shuffleArray(quizQueue);
-        currentIndex = 0;
-        results = [];
         
         quizQueue = quizQueue.map(item => {
             const isSymbolQuestion = Math.random() > 0.5;
             return {
-                ...item,
+                original: item, 
                 question: isSymbolQuestion ? item.symbol : item.name,
                 answer: isSymbolQuestion ? item.name : item.symbol,
-                type: isSymbolQuestion ? '符號' : '中文'
+                type: isSymbolQuestion ? '符號題' : '中文題'
             };
         });
+
+        currentIndex = 0;
+        results = [];
 
         document.getElementById('start-screen').classList.add('hidden');
         document.getElementById('result-screen').classList.add('hidden');
         document.getElementById('quiz-screen').classList.remove('hidden');
+        
         document.getElementById('total-count').innerText = quizQueue.length;
         
         loadCard();
+    }
+
+    function goHome() {
+        document.getElementById('result-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('start-screen').classList.remove('hidden');
     }
 
     function loadCard() {
@@ -274,13 +430,17 @@
         
         card.classList.remove('is-flipped');
         isCardFlipped = false;
-        document.getElementById('action-buttons').classList.add('hidden');
+        
+        // 使用 invisible 類別切換（隱藏但佔位）
+        document.getElementById('action-buttons').classList.add('invisible');
+        document.getElementById('hint-text').style.visibility = 'visible';
 
         document.getElementById('current-count').innerText = currentIndex + 1;
-        document.getElementById('question-text').innerText = currentItem.question;
+        
+        document.getElementById('question-text').innerHTML = currentItem.question;
         
         setTimeout(() => {
-            document.getElementById('answer-text').innerText = currentItem.answer;
+            document.getElementById('answer-text').innerHTML = currentItem.answer;
         }, 200);
     }
 
@@ -291,8 +451,12 @@
         card.classList.add('is-flipped');
         isCardFlipped = true;
         
+        // 隱藏提示文字，避免視覺雜亂 (可選)
+        document.getElementById('hint-text').style.visibility = 'hidden';
+
         setTimeout(() => {
-            document.getElementById('action-buttons').classList.remove('hidden');
+            // 移除 invisible 類別（顯示）
+            document.getElementById('action-buttons').classList.remove('invisible');
         }, 300);
     }
 
@@ -334,8 +498,8 @@
                 const div = document.createElement('div');
                 div.className = 'wrong-item';
                 div.innerHTML = `
-                    <span class="symbol-fixed">${item.symbol}</span>
-                    <span>${item.name}</span>
+                    <span class="symbol-fixed">${item.original.symbol}</span>
+                    <span>${item.original.name}</span>
                 `;
                 wrongListContainer.appendChild(div);
             });
